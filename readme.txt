@@ -1,4 +1,5 @@
 === E.164 Phone Checkout for WooCommerce ===
+Plugin link:  https://github.com/LawiK974/e164-phone-checkout
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 7.4
