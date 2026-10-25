@@ -2,7 +2,7 @@
 /**
  * Plugin Name: E.164 Phone Checkout for WooCommerce
  * Description: Requires billing phone numbers to use the international E.164 format at checkout.
- * Version: 1.2.0
+ * Version: 1.2.1
  * License: GPL-2.0-or-later
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
  * Requires Plugins: woocommerce
@@ -15,7 +15,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'E164_PHONE_CHECKOUT_VERSION', '1.2.0' );
+define( 'E164_PHONE_CHECKOUT_VERSION', '1.2.1' );
 define( 'E164_PHONE_CHECKOUT_INTL_TEL_INPUT_VERSION', '29.5.7' );
 
 /**

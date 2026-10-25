@@ -11,6 +11,11 @@
 	z-index: 2;
 }
 
+.iti .iti__search-input {
+	padding-inline-start: calc(var(--iti-spacer-horizontal, 10px) * 2 + var(--iti-globe-icon-size, 17px)) !important;
+	padding-inline-end: calc(var(--iti-spacer-horizontal, 10px) * 2 + var(--iti-clear-icon-size, 15px)) !important;
+}
+
 .e164-phone-checkout__help {
 	margin: 0.5em 0 0;
 }

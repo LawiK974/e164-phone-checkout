@@ -2,7 +2,7 @@
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.2.0
+Stable tag: 1.2.1
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -31,6 +31,9 @@ Yes. The plugin supports both the classic shortcode checkout and the WooCommerce
 No. The pinned intl-tel-input v29.5.7 assets are loaded from jsDelivr, so no copy of the third-party library needs to be maintained in this repository.
 
 == Changelog ==
+
+= 1.2.1 =
+* Fix country search icon overlapping the search text.
 
 = 1.2.0 =
 * Load intl-tel-input from the pinned jsDelivr release instead of bundling library files.
