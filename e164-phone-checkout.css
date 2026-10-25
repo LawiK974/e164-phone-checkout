@@ -1,0 +1,16 @@
+.iti {
+	display: block;
+	width: 100%;
+}
+
+.iti input[type="tel"] {
+	width: 100%;
+}
+
+.iti__country-container {
+	z-index: 2;
+}
+
+.e164-phone-checkout__help {
+	margin: 0.5em 0 0;
+}
