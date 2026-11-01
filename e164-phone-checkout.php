@@ -2,7 +2,7 @@
 /**
  * Plugin Name: E.164 Phone Checkout for WooCommerce
  * Description: Requires billing phone numbers to use the international E.164 format at checkout.
- * Version: 1.2.1
+ * Version: 1.3.0
  * License: GPL-2.0-or-later
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
  * Requires Plugins: woocommerce
@@ -15,7 +15,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'E164_PHONE_CHECKOUT_VERSION', '1.2.1' );
+define( 'E164_PHONE_CHECKOUT_VERSION', '1.3.0' );
 define( 'E164_PHONE_CHECKOUT_INTL_TEL_INPUT_VERSION', '29.5.7' );
 
 /**
@@ -35,7 +35,7 @@ function e164_phone_checkout_is_valid( $phone ) {
  */
 function e164_phone_checkout_get_format_help() {
 	return __(
-		'Choose your country and enter your phone number. It will be submitted in E.164 format (e.g. +33612345678).',
+		'Enter your phone number. It will be submitted in E.164 format (e.g. +33612345678).',
 		'e164-phone-checkout'
 	);
 }
@@ -48,9 +48,7 @@ function e164_phone_checkout_get_format_help() {
  */
 function e164_phone_checkout_configure_classic_field( $fields ) {
 	if ( isset( $fields['billing']['billing_phone'] ) ) {
-		$fields['billing']['billing_phone']['description'] = e164_phone_checkout_get_format_help();
 		$fields['billing']['billing_phone']['custom_attributes']['data-e164-phone-checkout'] = '1';
-		$fields['billing']['billing_phone']['custom_attributes']['title']                    = e164_phone_checkout_get_format_help();
 	}
 
 	return $fields;
@@ -58,7 +56,7 @@ function e164_phone_checkout_configure_classic_field( $fields ) {
 add_filter( 'woocommerce_checkout_fields', 'e164_phone_checkout_configure_classic_field' );
 
 /**
- * Add visible format guidance to the Checkout Block phone field.
+ * Enqueue phone formatting assets on the checkout page.
  */
 function e164_phone_checkout_enqueue_block_field_script() {
 	if ( ! function_exists( 'is_checkout' ) || ! is_checkout() ) {
@@ -90,20 +88,6 @@ function e164_phone_checkout_enqueue_block_field_script() {
 		array( 'intl-tel-input' ),
 		E164_PHONE_CHECKOUT_VERSION,
 		true
-	);
-
-	$billing_country = WC()->customer->get_billing_country();
-	if ( ! $billing_country ) {
-		$billing_country = WC()->countries->get_base_country();
-	}
-
-	wp_localize_script(
-		'e164-phone-checkout',
-		'e164PhoneCheckout',
-		array(
-			'formatHelp'    => e164_phone_checkout_get_format_help(),
-			'initialCountry' => strtolower( $billing_country ),
-		)
 	);
 }
 add_action( 'wp_enqueue_scripts', 'e164_phone_checkout_enqueue_block_field_script' );

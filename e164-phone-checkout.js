@@ -7,10 +7,64 @@
 
 	const getIntlTelInputOptions = () => ({
 		formatAsYouType: true,
-		initialCountry: e164PhoneCheckout.initialCountry,
 		numberDisplayFormat: 'INTERNATIONAL',
 		separateDialCode: false,
 	});
+
+	const setFieldValue = (field, value) => {
+		const setter = Object.getOwnPropertyDescriptor(
+			window.HTMLInputElement.prototype,
+			'value'
+		).set;
+		setter.call(field, value);
+		field.dispatchEvent(new Event('input', { bubbles: true }));
+	};
+
+	const syncCountryWithNumber = (field, iti) => {
+		let selectedCountry = iti.getSelectedCountry();
+		let lastDigits = field.value.replace(/\D/g, '');
+		let syncingCountry = false;
+
+		field.addEventListener('input', () => {
+			if (syncingCountry || instances.get(field) !== iti) {
+				return;
+			}
+
+			selectedCountry = iti.getSelectedCountry();
+			lastDigits = field.value.replace(/\D/g, '');
+		});
+
+		field.addEventListener('countrychange', () => {
+			if (syncingCountry || instances.get(field) !== iti) {
+				return;
+			}
+
+			const country = iti.getSelectedCountry();
+			const digits = field.value.replace(/\D/g, '');
+			if (digits !== lastDigits) {
+				selectedCountry = country;
+				lastDigits = digits;
+				return;
+			}
+
+			const oldDialCode = selectedCountry?.dialCode || '';
+			const newDialCode = country?.dialCode || '';
+			if (digits && oldDialCode && newDialCode) {
+				const raw = field.value.trim();
+				const nationalDigits =
+					raw.startsWith('+') && digits.startsWith(oldDialCode)
+						? digits.slice(oldDialCode.length)
+						: digits;
+
+				syncingCountry = true;
+				setFieldValue(field, `+${newDialCode}${nationalDigits}`);
+				syncingCountry = false;
+			}
+
+			selectedCountry = country;
+			lastDigits = field.value.replace(/\D/g, '');
+		});
+	};
 
 	const configurePhoneFields = () => {
 		document.querySelectorAll(selector).forEach((field) => {
@@ -18,36 +72,11 @@
 				return;
 			}
 
-			field.setAttribute('title', e164PhoneCheckout.formatHelp);
 			field.setAttribute('inputmode', 'tel');
 
 			const iti = window.intlTelInput(field, getIntlTelInputOptions());
 			instances.set(field, iti);
-
-			const helpId = `${field.id || field.name || 'billing-phone'}-e164-help`;
-			let help = field.id === 'billing_phone'
-				? field.closest('.form-row')?.querySelector('.description')
-				: document.getElementById(helpId);
-
-			if (!help && field.id !== 'billing_phone') {
-				help = document.createElement('p');
-				help.id = helpId;
-				help.className = 'e164-phone-checkout__help';
-				help.textContent = e164PhoneCheckout.formatHelp;
-				const wrapper = field.closest('.iti') || field;
-				wrapper.insertAdjacentElement('afterend', help);
-			}
-
-			if (help) {
-				if (!help.id) {
-					help.id = helpId;
-				}
-				const describedBy = new Set(
-					(field.getAttribute('aria-describedby') || '').split(/\s+/).filter(Boolean)
-				);
-				describedBy.add(help.id);
-				field.setAttribute('aria-describedby', Array.from(describedBy).join(' '));
-			}
+			syncCountryWithNumber(field, iti);
 
 			field.addEventListener('blur', () => normalizeForSubmission(field, iti), true);
 		});
@@ -63,19 +92,28 @@
 			return;
 		}
 
-		const setter = Object.getOwnPropertyDescriptor(
-			window.HTMLInputElement.prototype,
-			'value'
-		).set;
 		iti.destroy();
-		setter.call(field, number);
-		field.dispatchEvent(new Event('input', { bubbles: true }));
-		instances.set(field, window.intlTelInput(field, getIntlTelInputOptions()));
+		setFieldValue(field, number);
+		const replacement = window.intlTelInput(field, getIntlTelInputOptions());
+		instances.set(field, replacement);
+		syncCountryWithNumber(field, replacement);
+	};
+
+	let resyncTimer = null;
+	const scheduleWork = () => {
+		if (resyncTimer) {
+			clearTimeout(resyncTimer);
+		}
+
+		resyncTimer = setTimeout(() => {
+			resyncTimer = null;
+			configurePhoneFields();
+		}, 120);
 	};
 
 	configurePhoneFields();
 
-	new MutationObserver(configurePhoneFields).observe(document.body, {
+	new MutationObserver(scheduleWork).observe(document.body, {
 		childList: true,
 		subtree: true,
 	});

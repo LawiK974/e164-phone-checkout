@@ -8,8 +8,8 @@ selector and requires the submitted billing number to use E.164 format.
 - Supports WooCommerce's classic checkout and Checkout Block.
 - Loads [`intl-tel-input`](https://github.com/jackocnr/intl-tel-input) v29.5.7
   from jsDelivr at runtime; the library is not bundled in this repository.
-- Defaults the country selector to the customer's billing country, or the
-  store's base country.
+- Keeps the phone country selector and the number's international dialing
+  code in sync.
 - Sends phone numbers to WooCommerce in canonical E.164 format.
 - Validates the final value on the server for both checkout flows.
 
