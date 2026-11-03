@@ -3,7 +3,7 @@ Plugin link:  https://github.com/LawiK974/e164-phone-checkout
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.0
+Stable tag: 1.3.1
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -32,6 +32,9 @@ Yes. The plugin supports both the classic shortcode checkout and the WooCommerce
 No. The pinned intl-tel-input v29.5.7 assets are loaded from jsDelivr, so no copy of the third-party library needs to be maintained in this repository.
 
 == Changelog ==
+
+= 1.3.1 =
+* Keep the leading + in the phone field so the country selector stays in sync with the dialing code.
 
 = 1.3.0 =
 * Sync the phone country selector with the phone number's international dialing code.

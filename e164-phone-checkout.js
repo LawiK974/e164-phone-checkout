@@ -4,6 +4,7 @@
 	const selector = 'input[data-e164-phone-checkout="1"], #billing_phone, #billing-phone, input[name="billing_phone"], input[name="billing_address[phone]"]';
 	const instances = new WeakMap();
 	const e164Pattern = /^\+[1-9][0-9]{1,14}$/;
+	const trunkPrefixPattern = /^0+/;
 
 	const getIntlTelInputOptions = () => ({
 		formatAsYouType: true,
@@ -24,18 +25,82 @@
 		let selectedCountry = iti.getSelectedCountry();
 		let lastDigits = field.value.replace(/\D/g, '');
 		let syncingCountry = false;
+		let normalizing = false;
 
-		field.addEventListener('input', () => {
-			if (syncingCountry || instances.get(field) !== iti) {
+		const ensurePlusSign = () => {
+			const raw = field.value;
+			if (raw.startsWith('+')) {
 				return;
 			}
 
+			const digits = raw.replace(/\D/g, '');
+			if (!digits) {
+				return;
+			}
+
+			const dialCode = selectedCountry?.dialCode || '';
+			const nationalDigits =
+				dialCode && digits.startsWith(dialCode)
+					? digits.slice(dialCode.length)
+					: selectedCountry?.iso2 === 'it'
+						? digits
+						: digits.replace(trunkPrefixPattern, '');
+
+			if (!nationalDigits) {
+				return;
+			}
+
+			const value = `+${dialCode}${nationalDigits}`;
+			const caret = typeof field.selectionStart === 'number' ? field.selectionStart : raw.length;
+
+			normalizing = true;
+			setFieldValue(field, value);
+			normalizing = false;
+
+			const caretPosition =
+				caret >= raw.length ? value.length : Math.min(value.length, caret + value.length - raw.length);
+			field.setSelectionRange(caretPosition, caretPosition);
+		};
+
+		field.addEventListener('beforeinput', (event) => {
+			if (instances.get(field) !== iti || !field.value.startsWith('+')) {
+				return;
+			}
+
+			const start = field.selectionStart;
+			const end = field.selectionEnd;
+
+			if (start !== 0) {
+				return;
+			}
+
+			if (event.inputType === 'deleteContentBackward') {
+				event.preventDefault();
+				if (end > 0) {
+					setFieldValue(field, `+${field.value.slice(end)}`);
+				}
+				field.setSelectionRange(1, 1);
+				return;
+			}
+
+			if (event.inputType === 'deleteContentForward' && start === end) {
+				event.preventDefault();
+			}
+		});
+
+		field.addEventListener('input', () => {
+			if (syncingCountry || normalizing || instances.get(field) !== iti) {
+				return;
+			}
+
+			selectedCountry = iti.getSelectedCountry();
+			ensurePlusSign();
 			selectedCountry = iti.getSelectedCountry();
 			lastDigits = field.value.replace(/\D/g, '');
 		});
 
 		field.addEventListener('countrychange', () => {
-			if (syncingCountry || instances.get(field) !== iti) {
+			if (syncingCountry || normalizing || instances.get(field) !== iti) {
 				return;
 			}
 
